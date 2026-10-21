@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Motos | ABMC Cloud</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f4f6f9;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .main-card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        .card-header-custom {
+            border-top-left-radius: 12px !important;
+            border-top-right-radius: 12px !important;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+        }
+        .btn-custom-add {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            border: none;
+            color: white;
+            font-weight: 600;
+        }
+        .btn-custom-add:hover {
+            opacity: 0.9;
+            color: white;
+        }
+        .badge-km {
+            background-color: #e9ecef;
+            color: #495057;
+            font-weight: 600;
+            padding: 6px 10px;
+            border-radius: 6px;
+        }
+        .badge-precio {
+            background-color: #d1e7dd;
+            color: #0f5132;
+            font-size: 0.95rem;
+            font-weight: 700;
+            padding: 6px 12px;
+            border-radius: 6px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container py-5">
+        <!-- Encabezado Principal -->
+        <div class="d-flex align-items-center justify-content-between mb-4">
+            <div>
+                <h2 class="fw-bold text-dark mb-1">Gestión de Motos</h2>
+                <p class="text-muted mb-0">Base de datos conectada en la nube</p>
+            </div>
+            <span class="badge bg-success px-3 py-2">Cloud SQL Activo</span>
+        </div>
+
+        <div class="row g-4">
+            <!-- COLUMNA IZQUIERDA: FORMULARIO DE CARGA / EDICIÓN -->
+            <div class="col-lg-4">
+                <div class="card main-card">
+                    <div class="card-header card-header-custom p-3">
+                        <h5 class="mb-0 fs-6 fw-bold" id="form-title">
+                            Cargar Nueva Moto
+                        </h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <form id="motoForm" action="/agregar" method="POST">
+                            <input type="hidden" id="id_moto" name="id_moto">
+
+                            <div class="mb-3">
+                                <label class="form-label text-secondary fw-semibold fs-7">Marca / Nombre</label>
+                                <input type="text" class="form-control form-control-lg fs-6" id="moto" name="moto" placeholder="Ej. Yamaha, Honda" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label text-secondary fw-semibold fs-7">Modelo</label>
+                                <input type="text" class="form-control form-control-lg fs-6" id="modelo" name="modelo" placeholder="Ej. FZ Full, CB 250" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label text-secondary fw-semibold fs-7">Kilómetros</label>
+                                <input type="number" class="form-control form-control-lg fs-6" id="km" name="km" placeholder="Ej. 15000" required>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label text-secondary fw-semibold fs-7">Precio ($)</label>
+                                <input type="number" step="0.01" class="form-control form-control-lg fs-6" id="precio" name="precio" placeholder="Ej. 2500000" required>
+                            </div>
+
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-custom-add py-2" id="btnGuardar">
+                                    Guardar Moto
+                                </button>
+                                <button type="button" class="btn btn-light text-muted btn-sm mt-1" onclick="limpiarFormulario()">
+                                    Cancelar / Limpiar
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- COLUMNA DERECHA: TABLA DE DATOS -->
+            <div class="col-lg-8">
+                <div class="card main-card">
+                    <div class="card-header bg-white p-3 border-bottom-0 d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 fw-bold text-secondary fs-6">Registros Guardados</h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr class="text-secondary fs-7">
+                                        <th class="ps-4">ID</th>
+                                        <th>MOTO</th>
+                                        <th>MODELO</th>
+                                        <th>KILÓMETROS</th>
+                                        <th>PRECIO</th>
+                                        <th class="text-center pe-4">ACCIONES</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for m in motos %}
+                                    <tr>
+                                        <td class="ps-4 text-muted fw-bold">#{{ m['id moto'] }}</td>
+                                        <td class="fw-bold text-dark">{{ m['Moto'] }}</td>
+                                        <td><span class="text-secondary">{{ m['modelo'] }}</span></td>
+                                        <td><span class="badge-km">{{ m['km'] }} km</span></td>
+                                        <td><span class="badge-precio">$ {{ m['precio'] }}</span></td>
+                                        <td class="text-center pe-4">
+                                            <button class="btn btn-primary btn-sm me-1 fw-semibold" title="Editar" onclick="cargarParaEditar('{{ m['id moto'] }}', '{{ m['Moto'] }}', '{{ m['modelo'] }}', '{{ m['km'] }}', '{{ m['precio'] }}')">
+                                                Editar
+                                            </button>
+                                            <a href="/eliminar/{{ m['id moto'] }}" class="btn btn-danger btn-sm fw-semibold" title="Eliminar" onclick="return confirm('¿Eliminar registro de {{ m['Moto'] }}?')">
+                                                Eliminar
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% else %}
+                                    <tr>
+                                        <td colspan="6" class="text-center py-4 text-muted">
+                                            No hay registros guardados en la base de datos.
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script JavaScript para transferir datos al formulario -->
+    <script>
+        function cargarParaEditar(id, moto, modelo, km, precio) {
+            document.getElementById('id_moto').value = id;
+            document.getElementById('moto').value = moto;
+            document.getElementById('modelo').value = modelo;
+            document.getElementById('km').value = km;
+            document.getElementById('precio').value = precio;
+            
+            document.getElementById('form-title').innerText = 'Editar Moto #' + id;
+            document.getElementById('btnGuardar').innerText = 'Actualizar Cambios';
+            document.getElementById('btnGuardar').className = "btn btn-primary py-2 fw-semibold";
+            document.getElementById('motoForm').action = "/editar";
+        }
+
+        function limpiarFormulario() {
+            document.getElementById('id_moto').value = "";
+            document.getElementById('motoForm').reset();
+            document.getElementById('form-title').innerText = 'Cargar Nueva Moto';
+            document.getElementById('btnGuardar').innerText = 'Guardar Moto';
+            document.getElementById('btnGuardar').className = "btn btn-custom-add py-2";
+            document.getElementById('motoForm').action = "/agregar";
+        }
+    </script>
+</body>
+</html>
